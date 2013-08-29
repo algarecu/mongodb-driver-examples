@@ -1,77 +1,77 @@
 <?php
 
 /*
- php_simple_example.php
-
- A sample PHP script covering connection to a MongoDB database given a
- fully-qualified URI. There are a few additional means, but we prefer the URI
- connection model because developers can use the same code to handle various
- database configuration possibilities (single, master/slave, replica sets).
- 
- Be sure to add extension=mongo.so to your php.ini file.
- 
- Author::  Mongolab
+ * Written with extension mongo 1.4.3
+ * A PHP script connecting to a MongoDB database given a MongoDB Connection URI.
 */
 
+// Standard URI format: mongodb://[dbuser:dbpassword@]host:port/dbname
+
+$uri = "mongodb://sandbox:test@ds039768.mongolab.com:39768/test2345";
+$uriParts = explode("/", $uri); 
+$dbName = $uriParts[3];
+
+$client = new MongoClient($uri);
+$db = $client->$dbName;
+$songs = $db->songs;
+
 /*
- If your database is running in auth mode, you will need to provide a URI
- with user info and a database path, ex:
- 'mongodb://username:password@localhost:27017/mongoquest'
+ * First we'll add a few songs. Nothing is required to create the songs
+ * collection; it is created automatically when we insert.
 */
-$m = new Mongo('mongodb://localhost:27017');
-$db = $m->mongoquest;
+
+$seventies = array(
+    'decade' => '1970s', 
+    'artist' => 'Debby Boone',
+    'song' => 'You Light Up My Life', 
+    'weeksAtOne' => 10
+);
+
+$eighties = array(
+    'decade' => '1980s', 
+    'artist' => 'Olivia Newton-John',
+    'song' => 'Physical', 
+    'weeksAtOne' => 10
+);
+
+$nineties = array(
+    'decade' => '1990s', 
+    'artist' => 'Mariah Carey',
+    'song' => 'One Sweet Day', 
+    'weeksAtOne' => 16
+);
+
+$songList = array($seventies, $eighties, $nineties);
+$songs->batchInsert($songList);
 
 /*
- What follows is code that can vary widely depending on your style
- First we get our desired collection.
- */
-$collection = $db->Spells;
+ * Then we need to give Boyz II Men credit for their contribution to
+ * the hit "One Sweet Day".
+*/
 
+$songs->update(
+    array('artist' => 'Mariah Carey'), 
+    array('$set' => array('artist' => 'Mariah Carey ft. Boyz II Men'))
+);
+    
 /*
- We insert by first creating an array, and passing that array to
- the collection's insert function. We use arrays to construct
- JSON-like objects.
- */
-$obj = array('name' => 'Poke', 'level' => 1);
-$collection->insert($obj);
-$obj2 = array('name' => 'Zap', 'level' => 1);
-$collection->insert($obj2);
-$obj3 = array('name' => 'Blast', 'level' => 2);
-$collection->insert($obj3);
+ * Finally we run a query which returns all the hits that spent 10 
+ * or more weeks at number 1. 
+*/
 
-/*
- At level 1, we only know level 1 spells.
- */
-echo 'Level 1 spell list:<br/>';
-$query = array('level' => 1);
-$cursor = $collection->find($query);
-foreach($cursor as $obj) {
-    echo 'Spell name: ' .$obj['name'] .'<br/>';
+$query = array('weeksAtOne' => array('$gte' => 10));
+$cursor = $songs->find($query)->sort(array('decade' => 1));
+
+foreach($cursor as $doc) {
+    echo 'In the ' .$doc['decade'];
+    echo ', ' .$doc['song']; 
+    echo ' by ' .$doc['artist'];
+    echo ' topped the charts for ' .$doc['weeksAtOne']; 
+    echo ' straight weeks.', "\n";
 }
 
-/*
- Since these spells aren't very exciting, let's add a little flavor
- to each of them. We can use array syntax in-line to create JSON-like
- queries.
- */
-$collection->update(array('name' => 'Poke'), array('$set' => array('flavor' => 'Snick snick!')));
-$collection->update(array('name' => 'Zap'), array('$set' => array('flavor' => 'Bzazt!')));
-$collection->update(array('name' => 'Blast'), array('$set' => array('flavor' => 'FWOOM!')));
-    
-/*
- This time we query again, with flavor!
- */
-echo '<br/>Level 1 spell list, with flavor:<br/>';
-$query2 = array('level' => 1);
-$cursor2 = $collection->find($query2);
-foreach($cursor2 as $obj2) {
-    echo 'Spell name: ' .$obj2['name'];
-    echo ' Flavortext: ' .$obj2['flavor'] .'<br/>';
-}
-    
-/*
- Since this is an example, we'll clean up after ourselves.
- */
-$collection->drop();
-    
+// Since this is an example, we'll clean up after ourselves.
+
+$songs->drop();
+
 ?>
