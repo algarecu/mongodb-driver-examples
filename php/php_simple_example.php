@@ -1,48 +1,56 @@
 <?php
 
 /*
+ * Copyright (c) 2013 ObjectLabs Corporation
+ * Distributed under the MIT license - http://opensource.org/licenses/MIT
+ *
  * Written with extension mongo 1.4.3
+ * Documentation: http://php.net/mongo
  * A PHP script connecting to a MongoDB database given a MongoDB Connection URI.
-*/
+ */
+
+// Create seed data
+
+$seedData = array(
+    array(
+        'decade' => '1970s', 
+        'artist' => 'Debby Boone',
+        'song' => 'You Light Up My Life', 
+        'weeksAtOne' => 10
+    ),
+    array(
+        'decade' => '1980s', 
+        'artist' => 'Olivia Newton-John',
+        'song' => 'Physical', 
+        'weeksAtOne' => 10
+    ),
+    array(
+        'decade' => '1990s', 
+        'artist' => 'Mariah Carey',
+        'song' => 'One Sweet Day', 
+        'weeksAtOne' => 16
+    ),
+);
 
 // Standard URI format: mongodb://[dbuser:dbpassword@]host:port/dbname
 
-$uri = "mongodb://sandbox:test@ds039768.mongolab.com:39768/test2345";
+$uri = "mongodb://user:pass@host:port/db";
 $uriParts = explode("/", $uri); 
 $dbName = $uriParts[3];
 
 $client = new MongoClient($uri);
 $db = $client->$dbName;
-$songs = $db->songs;
 
 /*
  * First we'll add a few songs. Nothing is required to create the songs
  * collection; it is created automatically when we insert.
-*/
+ */
 
-$seventies = array(
-    'decade' => '1970s', 
-    'artist' => 'Debby Boone',
-    'song' => 'You Light Up My Life', 
-    'weeksAtOne' => 10
-);
+$songs = $db->songs;
 
-$eighties = array(
-    'decade' => '1980s', 
-    'artist' => 'Olivia Newton-John',
-    'song' => 'Physical', 
-    'weeksAtOne' => 10
-);
+// To insert a dict, use the insert method.
 
-$nineties = array(
-    'decade' => '1990s', 
-    'artist' => 'Mariah Carey',
-    'song' => 'One Sweet Day', 
-    'weeksAtOne' => 16
-);
-
-$songList = array($seventies, $eighties, $nineties);
-$songs->batchInsert($songList);
+$songs->batchInsert($seedData);
 
 /*
  * Then we need to give Boyz II Men credit for their contribution to
@@ -73,5 +81,9 @@ foreach($cursor as $doc) {
 // Since this is an example, we'll clean up after ourselves.
 
 $songs->drop();
+
+// Only close the connection when your app is terminating
+
+$client->close();
 
 ?>
