@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2013 ObjectLabs Corporation
+ * Copyright (c) 2014 ObjectLabs Corporation
  * Distributed under the MIT license - http://opensource.org/licenses/MIT
  *
  * Written with extension mongo 1.4.3
@@ -34,7 +34,7 @@ $seedData = array(
 
 // Standard URI format: mongodb://[dbuser:dbpassword@]host:port/dbname
 
-$uri = "mongodb://user:pass@host:port/db";
+$uri = "mongodb://u:p@ds035238-a0.mongolab.com:35238,ds035238-spare.mongolab.com:35238/sl-data-prod-hsessions?replicaSet=rs-ds035238";
 $uriParts = explode("/", $uri); 
 $dbName = $uriParts[3];
 
